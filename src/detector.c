@@ -7,6 +7,7 @@
 #include "box.h"
 #include "demo.h"
 #include "option_list.h"
+#include <libgen.h>
 
 #ifndef __COMPAR_FN_T
 #define __COMPAR_FN_T
@@ -1341,10 +1342,27 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         detection *dets = get_network_boxes(&net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letter_box);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
         draw_detections_v3(im, dets, nboxes, thresh, names, alphabet, l.classes, ext_output);
-        save_image(im, "predictions");
-        if (!dont_show) {
-            show_image(im, "predictions");
+
+        // save_image(im, "predictions");
+        // if (!dont_show) {
+        //     show_image(im, "predictions");
+        // }
+
+        char input_copy[256];
+        strncpy(input_copy, input, 256);
+        char * img_basename = input_copy;
+        for (int i = strlen(input_copy) - 1; i >= 0; i--) {
+            if (img_basename[i] == '.') {
+                img_basename[i] = '\0';
+            } else if (img_basename[i] == '/') {
+                img_basename = input_copy + i + 1;
+                break;
+            }
         }
+
+        char output_img[256];
+        sprintf(output_img, "results/%s.yolo", img_basename);
+        save_image(im, output_img);
 
         if (outfile) {
             if (json_buf) {
